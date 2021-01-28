@@ -8,6 +8,8 @@ import { rollupStrategy } from './strategy.rollup.js'
 import { webpackStrategy } from './strategy.webpack.js'
 import { systemJSStrategy } from './strategy.system.js'
 
+const correctStrategy = nativeStrategy;
+
 const strategies = [
   registryStrategy,
   rollupStrategy,
@@ -94,7 +96,7 @@ async function main() {
 
     // V8 is assumed to be correct
     const files = generateTestCase()
-    const expectedStdout = await runStrategy(nativeStrategy, files, testDir)
+    const expectedStdout = await runStrategy(correctStrategy, files, testDir)
     let isImportantFailure = false
 
     // Test the correctness of other strategies
@@ -109,7 +111,7 @@ async function main() {
 
     // Visualize current test status
     process.stdout.write(
-      `\r${i + 1} run${i ? 's' : ''}:` + [decorate(nativeStrategy.name, false)].concat(
+      `\r${i + 1} run${i ? 's' : ''}:` + [decorate(correctStrategy.name, false)].concat(
         strategies.map((strategy, i) => decorate(strategy.name, counterexamples[i]))).join(''))
 
     // Only keep this directory if it contains a counter-example
