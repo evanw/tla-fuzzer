@@ -12,7 +12,10 @@ export async function rollupStrategy(files, dir) {
     fs.writeFileSync(path.join(dir, name), files[name])
   }
 
-  const bundle = await rollup({ input: path.join(dir, lastName) })
+  const bundle = await rollup({
+    input: path.join(dir, lastName),
+    onwarn() { },
+  })
   const { output } = await bundle.generate({})
   return output[0].code
 }

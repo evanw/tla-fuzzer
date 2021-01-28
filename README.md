@@ -11,7 +11,16 @@ This is a fuzzer to test the correctness of various [top-level await](https://gi
 
 "Correct" here means that the bundled code behaves exactly the same as the unbundled code. "Incorrect" here means that the bundled code behaves differently (i.e. is evaluated in a different order) than unbundled code.
 
+Acyclic:
+
 * Custom module registry algorithm: ✅ Correct
+* Rollup 2.38.0: 🚫 Incorrect
+* Webpack 5.18.0: 🚫 Incorrect
+* SystemJS 6.8.3: 🚫 Incorrect
+
+Cyclic:
+
+* Custom module registry algorithm: 🚫 Incorrect
 * Rollup 2.38.0: 🚫 Incorrect
 * Webpack 5.18.0: 🚫 Incorrect
 * SystemJS 6.8.3: 🚫 Incorrect

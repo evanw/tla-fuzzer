@@ -5,10 +5,10 @@ export function registryStrategy(files) {
     let modules = {}
 
     function register(name, imports, fn) {
-      modules[name] = { fn, state: 'ready', imports, whenDone: [] }
+      modules[name] = { fn, state: 'ready', imports, whenDone: [], remaining: 1 }
     }
 
-    function evaluate(name, whenDone) {
+    function evaluate(name, whenDone, stack = []) {
       let module = modules[name]
       if (module.state === 'done') {
         whenDone()
@@ -19,19 +19,23 @@ export function registryStrategy(files) {
       if (module.state === 'busy') return
       module.state = 'busy'
 
-      let remaining = 1 + module.imports.length
       let moduleDone = () => {
         module.state = 'done'
         for (let x of module.whenDone) x()
       }
       let importDone = () => {
-        if (--remaining !== 0) return
+        if (--module.remaining !== 0) return
         let result = module.fn()
         if (result) result.then(moduleDone)
         else moduleDone()
       }
 
-      for (let i of module.imports) evaluate(i, importDone)
+      stack = stack.concat(name)
+      for (let i of module.imports) {
+        if (stack.includes(i)) continue
+        module.remaining++
+        evaluate(i, importDone, stack)
+      }
       importDone()
     }
   `
