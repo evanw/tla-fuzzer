@@ -9,18 +9,32 @@ This is a fuzzer to test the correctness of various [top-level await](https://gi
 
 ## Current results
 
-"Correct" here means that the bundled code behaves exactly the same as the unbundled code. "Incorrect" here means that the bundled code behaves differently (i.e. is evaluated in a different order) than unbundled code.
+"Correct" here means that the bundled code behaves exactly the same as the unbundled code. "Incorrect" here means that the bundled code behaves differently (i.e. is evaluated in a different order) than unbundled code. The correct percentage means how many runs were correct out of 300 total runs.
 
-Acyclic:
+Variant: simple
 
-* Custom module registry algorithm: ✅ Correct
-* Rollup 2.38.0: 🚫 Incorrect
-* Webpack 5.18.0: 🚫 Incorrect
-* SystemJS 6.8.3: 🚫 Incorrect
+* Custom module registry algorithm: ✅ Correct (100% correct)
+* Webpack 5.18.0: 🚫 Incorrect (92% correct)
+* Rollup 2.38.0: 🚫 Incorrect (80% correct)
+* SystemJS 6.8.3: 🚫 Incorrect (67% correct)
 
-Cyclic:
+Variant: trailing promise
 
-* Custom module registry algorithm: 🚫 Incorrect
-* Rollup 2.38.0: 🚫 Incorrect
-* Webpack 5.18.0: 🚫 Incorrect
-* SystemJS 6.8.3: 🚫 Incorrect
+* Custom module registry algorithm: ✅ Correct (100% correct)
+* Webpack 5.18.0: 🚫 Incorrect (45% correct)
+* SystemJS 6.8.3: 🚫 Incorrect (38% correct)
+* Rollup 2.38.0: 🚫 Incorrect (12% correct)
+
+Variant: cyclic
+
+* Custom module registry algorithm: 🚫 Incorrect (99% correct)
+* SystemJS 6.8.3: 🚫 Incorrect (84% correct)
+* Webpack 5.18.0: 🚫 Incorrect (70% correct)
+* Rollup 2.38.0: 🚫 Incorrect (69% correct)
+
+Variant: cyclic, trailing promise
+
+* Custom module registry algorithm: 🚫 Incorrect (99% correct)
+* SystemJS 6.8.3: 🚫 Incorrect (46% correct)
+* Webpack 5.18.0: 🚫 Incorrect (32% correct)
+* Rollup 2.38.0: 🚫 Incorrect (20% correct)

@@ -17,7 +17,7 @@ const strategies = [
   systemJSStrategy,
 ]
 
-function generateTestCase(isCyclic, useTrailingPromise) {
+function generateTestCase({ isCyclic, useTrailingPromise }) {
   const files = {}
 
   for (let i = 0, count = 10; i < count; i++) {
@@ -86,36 +86,41 @@ async function main() {
   const dir = path.join(__dirname, '.tests')
   try { fs.rmdirSync(dir, { recursive: true }) } catch (e) { }
 
-  let cyclicCounterexamples = []
-  let acyclicCounterexamples = []
-  for (let i = 0; i < strategies.length; i++) {
-    cyclicCounterexamples.push(null)
-    acyclicCounterexamples.push(null)
+  const variants = []
+  for (const isCyclic of [false, true]) {
+    for (const useTrailingPromise of [false, true]) {
+      const parts = []
+      if (isCyclic) parts.push('cyclic')
+      if (useTrailingPromise) parts.push('trailing promise')
+      variants.push({
+        isCyclic,
+        useTrailingPromise,
+        name: parts.join(', ') || 'simple',
+        counterexamples: strategies.map(() => null),
+      })
+    }
   }
 
   const totalCount = 300
-  for (const isCyclic of [false, true]) {
-    const counterexamples = isCyclic ? cyclicCounterexamples : acyclicCounterexamples;
-    const which = isCyclic ? 'cyclic' : 'acyclic';
-
+  for (const variant of variants) {
     for (let i = 0; i < totalCount; i++) {
-      const testDir = path.join(dir, which, i.toString())
+      const testDir = path.join(dir, variant.name.replace(/\W+/g, '-'), i.toString())
       fs.mkdirSync(testDir, { recursive: true })
 
       // V8 is assumed to be correct
-      const files = generateTestCase(isCyclic)
+      const files = generateTestCase(variant)
       const expectedStdout = await runStrategy(correctStrategy, files, testDir)
       let isImportantFailure = false
 
       // Test the correctness of other strategies
-      for (let i = 0; i < strategies.length; i++) {
-        const observedStdout = await runStrategy(strategies[i], files, testDir)
+      for (let j = 0; j < strategies.length; j++) {
+        const observedStdout = await runStrategy(strategies[j], files, testDir)
         if (observedStdout !== expectedStdout) {
-          if (counterexamples[i]) {
-            counterexamples[i].count++
+          if (variant.counterexamples[j]) {
+            variant.counterexamples[j].count++
             continue
           }
-          counterexamples[i] = { files, expectedStdout, observedStdout, count: 1 }
+          variant.counterexamples[j] = { files, expectedStdout, observedStdout, count: 1 }
           isImportantFailure = true
         }
       }
@@ -125,8 +130,8 @@ async function main() {
         ? `  🚫 \x1b[31m${name} (${(100 - 100 * fail.count / (i + 1)).toFixed(0)}%)\x1b[0m`
         : `  ✅ \x1b[32m${name} (100%)\x1b[0m`
       process.stdout.write(
-        `\r${i + 1} run${i ? 's' : ''} (${which}):` + [decorate(correctStrategy.name, null)].concat(
-          strategies.map((strategy, i) => decorate(strategy.name, counterexamples[i]))).join('') + '  ')
+        `\r${i + 1} run${i ? 's' : ''} (${variant.name}):` + [decorate(correctStrategy.name, null)].concat(
+          strategies.map((strategy, i) => decorate(strategy.name, variant.counterexamples[i]))).join('') + '  ')
 
       // Only keep this directory if it contains a counter-example
       if (!isImportantFailure) try { fs.rmdirSync(testDir, { recursive: true }) } catch (e) { }
@@ -136,33 +141,43 @@ async function main() {
   }
 
   // Print correctness statistics
-  for (const isCyclic of [false, true]) {
-    const counterexamples = isCyclic ? cyclicCounterexamples : acyclicCounterexamples;
-    console.log(`\n${isCyclic ? 'Cyclic' : 'Acyclic'}:\n`)
+  let forReadme = ''
+  for (const variant of variants) {
+    console.log(`\nVariant: ${variant.name}:\n`)
+    forReadme += `\nVariant: ${variant.name}\n\n`
 
     const order = []
     for (let i = 0; i < strategies.length; i++) {
-      const failedCount = counterexamples[i] ? counterexamples[i].count : 0
-      const percent = (100 - 100 * failedCount / totalCount).toFixed(0) + '% correct'
-      if (failedCount > 0) order.push({ failedCount, text: `🚫 \x1b[31m${strategies[i].name} (${percent})\x1b[0m` })
-      else order.push({ failedCount, text: `✅ \x1b[32m${strategies[i].name} (${percent})\x1b[0m` })
+      const failedCount = variant.counterexamples[i] ? variant.counterexamples[i].count : 0
+      order.push({
+        failedCount,
+        percent: (100 - 100 * failedCount / totalCount).toFixed(0) + '% correct',
+        name: strategies[i].name,
+        version: strategies[i].version,
+      })
     }
 
     // Sort by decreasing correctness
     order.sort((a, b) => a.failedCount - b.failedCount || (a.text < b.text) - (a.text > b.text))
-    for (const { text } of order) console.log(text)
+
+    for (const { failedCount, percent, name, version } of order) {
+      if (failedCount > 0) {
+        console.log(`🚫 \x1b[31m${name} (${percent})\x1b[0m`)
+        forReadme += `* ${version}: 🚫 Incorrect (${percent})\n`
+      } else {
+        console.log(`✅ \x1b[32m${name} (${percent})\x1b[0m`)
+        forReadme += `* ${version}: ✅ Correct (${percent})\n`
+      }
+    }
   }
 
-  for (const isCyclic of [false, true]) {
-    const counterexamples = isCyclic ? cyclicCounterexamples : acyclicCounterexamples;
-    const which = isCyclic ? 'cyclic' : 'acyclic';
-
-    // Print information about failed strategies
+  // Print information about failed strategies
+  for (const variant of variants) {
     const indent = text => '  ' + text.trim().replace(/\n/g, '\n  ')
     for (let i = 0; i < strategies.length; i++) {
-      const counter = counterexamples[i]
+      const counter = variant.counterexamples[i]
       if (!counter) continue
-      console.log(`\n${'='.repeat(80)}\n🚫 \x1b[31m${strategies[i].name} (${which})\x1b[0m`)
+      console.log(`\n${'='.repeat(80)}\n🚫 \x1b[31m${strategies[i].name} (${variant.name})\x1b[0m`)
       for (const name in counter.files) {
         console.log(`\n\x1b[1m[${name}]\x1b[0m\n${indent(counter.files[name])}`)
       }
@@ -178,15 +193,9 @@ async function main() {
     readme = readme.slice(0, index)
     readme += '## Current results\n\n'
     readme += `"Correct" here means that the bundled code behaves exactly the same as the unbundled code. `
-    readme += `"Incorrect" here means that the bundled code behaves differently (i.e. is evaluated in a different order) than unbundled code.\n\n`
-    readme += `Acyclic:\n\n`
-    for (let i = 0; i < strategies.length; i++) {
-      readme += `* ${strategies[i].version}: ${acyclicCounterexamples[i] ? `🚫 Incorrect` : `✅ Correct`}\n`
-    }
-    readme += `\nCyclic:\n\n`
-    for (let i = 0; i < strategies.length; i++) {
-      readme += `* ${strategies[i].version}: ${cyclicCounterexamples[i] ? `🚫 Incorrect` : `✅ Correct`}\n`
-    }
+    readme += `"Incorrect" here means that the bundled code behaves differently (i.e. is evaluated in a different order) than unbundled code. `
+    readme += `The correct percentage means how many runs were correct out of ${totalCount} total runs.\n`
+    readme += forReadme
     fs.writeFileSync(path.join(__dirname, 'README.md'), readme)
   }
 }
