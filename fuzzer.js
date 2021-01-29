@@ -17,7 +17,7 @@ const strategies = [
   systemJSStrategy,
 ]
 
-function generateTestCase(isCyclic) {
+function generateTestCase(isCyclic, useTrailingPromise) {
   const files = {}
 
   for (let i = 0, count = 10; i < count; i++) {
@@ -28,13 +28,14 @@ function generateTestCase(isCyclic) {
 tlaTrace('${i} before')
 await 0
 tlaTrace('${i} in between')
-Promise.resolve().then(() => {
-  tlaTrace('${i} after')
-})
 `
     } else {
       code = `
 tlaTrace('${i} before')
+`
+    }
+    if (useTrailingPromise) {
+      code += `
 Promise.resolve().then(() => {
   tlaTrace('${i} after')
 })
@@ -92,12 +93,12 @@ async function main() {
     acyclicCounterexamples.push(null)
   }
 
+  const totalCount = 300
   for (const isCyclic of [false, true]) {
-    const decorate = (name, fail) => fail ? `    🚫 \x1b[31m${name}\x1b[0m` : `    ✅ \x1b[32m${name}\x1b[0m`
     const counterexamples = isCyclic ? cyclicCounterexamples : acyclicCounterexamples;
     const which = isCyclic ? 'cyclic' : 'acyclic';
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < totalCount; i++) {
       const testDir = path.join(dir, which, i.toString())
       fs.mkdirSync(testDir, { recursive: true })
 
@@ -108,27 +109,48 @@ async function main() {
 
       // Test the correctness of other strategies
       for (let i = 0; i < strategies.length; i++) {
-        if (counterexamples[i]) continue
         const observedStdout = await runStrategy(strategies[i], files, testDir)
         if (observedStdout !== expectedStdout) {
-          counterexamples[i] = { files, expectedStdout, observedStdout }
+          if (counterexamples[i]) {
+            counterexamples[i].count++
+            continue
+          }
+          counterexamples[i] = { files, expectedStdout, observedStdout, count: 1 }
           isImportantFailure = true
         }
       }
 
       // Visualize current test status
+      const decorate = (name, fail) => fail
+        ? `  🚫 \x1b[31m${name} (${(100 - 100 * fail.count / (i + 1)).toFixed(0)}%)\x1b[0m`
+        : `  ✅ \x1b[32m${name} (100%)\x1b[0m`
       process.stdout.write(
-        `\r${i + 1} run${i ? 's' : ''} (${which}):` + [decorate(correctStrategy.name, false)].concat(
-          strategies.map((strategy, i) => decorate(strategy.name, counterexamples[i]))).join(''))
+        `\r${i + 1} run${i ? 's' : ''} (${which}):` + [decorate(correctStrategy.name, null)].concat(
+          strategies.map((strategy, i) => decorate(strategy.name, counterexamples[i]))).join('') + '  ')
 
       // Only keep this directory if it contains a counter-example
       if (!isImportantFailure) try { fs.rmdirSync(testDir, { recursive: true }) } catch (e) { }
-
-      // Stop now if all tests are failing
-      if (counterexamples.length > 0 && counterexamples.every(x => x)) break
     }
 
     process.stdout.write('\n')
+  }
+
+  // Print correctness statistics
+  for (const isCyclic of [false, true]) {
+    const counterexamples = isCyclic ? cyclicCounterexamples : acyclicCounterexamples;
+    console.log(`\n${isCyclic ? 'Cyclic' : 'Acyclic'}:\n`)
+
+    const order = []
+    for (let i = 0; i < strategies.length; i++) {
+      const failedCount = counterexamples[i] ? counterexamples[i].count : 0
+      const percent = (100 - 100 * failedCount / totalCount).toFixed(0) + '% correct'
+      if (failedCount > 0) order.push({ failedCount, text: `🚫 \x1b[31m${strategies[i].name} (${percent})\x1b[0m` })
+      else order.push({ failedCount, text: `✅ \x1b[32m${strategies[i].name} (${percent})\x1b[0m` })
+    }
+
+    // Sort by decreasing correctness
+    order.sort((a, b) => a.failedCount - b.failedCount || (a.text < b.text) - (a.text > b.text))
+    for (const { text } of order) console.log(text)
   }
 
   for (const isCyclic of [false, true]) {
