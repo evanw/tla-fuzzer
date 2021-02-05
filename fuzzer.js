@@ -8,7 +8,7 @@ import { rollupStrategy } from './strategy.rollup.js'
 import { webpackStrategy } from './strategy.webpack.js'
 import { systemJSStrategy } from './strategy.system.js'
 
-const correctStrategy = nativeStrategy;
+const strategyToMatch = nativeStrategy;
 
 const strategies = [
   registryStrategy,
@@ -107,12 +107,12 @@ async function main() {
       const testDir = path.join(dir, variant.name.replace(/\W+/g, '-'), i.toString())
       fs.mkdirSync(testDir, { recursive: true })
 
-      // V8 is assumed to be correct
+      // V8 is assumed to be accurate (a slightly incorrect assumption)
       const files = generateTestCase(variant)
-      const expectedStdout = await runStrategy(correctStrategy, files, testDir)
+      const expectedStdout = await runStrategy(strategyToMatch, files, testDir)
       let isImportantFailure = false
 
-      // Test the correctness of other strategies
+      // Test how well other strategies match V8
       for (let j = 0; j < strategies.length; j++) {
         const observedStdout = await runStrategy(strategies[j], files, testDir)
         if (observedStdout !== expectedStdout) {
@@ -130,7 +130,7 @@ async function main() {
         ? `  🚫 \x1b[31m${name} (${(100 - 100 * fail.count / (i + 1)).toFixed(0)}%)\x1b[0m`
         : `  ✅ \x1b[32m${name} (100%)\x1b[0m`
       process.stdout.write(
-        `\r${i + 1} run${i ? 's' : ''} (${variant.name}):` + [decorate(correctStrategy.name, null)].concat(
+        `\r${i + 1} run${i ? 's' : ''} (${variant.name}):` + [decorate(strategyToMatch.name, null)].concat(
           strategies.map((strategy, i) => decorate(strategy.name, variant.counterexamples[i]))).join('') + '  ')
 
       // Only keep this directory if it contains a counter-example
@@ -140,7 +140,7 @@ async function main() {
     process.stdout.write('\n')
   }
 
-  // Print correctness statistics
+  // Print match statistics
   let forReadme = ''
   for (const variant of variants) {
     console.log(`\nVariant: ${variant.name}:\n`)
@@ -148,25 +148,25 @@ async function main() {
 
     const order = []
     for (let i = 0; i < strategies.length; i++) {
-      const failedCount = variant.counterexamples[i] ? variant.counterexamples[i].count : 0
+      const differentCount = variant.counterexamples[i] ? variant.counterexamples[i].count : 0
       order.push({
-        failedCount,
-        percent: (100 - 100 * failedCount / totalCount).toFixed(0) + '% correct',
+        differentCount,
+        percent: (100 - 100 * differentCount / totalCount).toFixed(0) + '% same',
         name: strategies[i].name,
         version: strategies[i].version,
       })
     }
 
-    // Sort by decreasing correctness
-    order.sort((a, b) => a.failedCount - b.failedCount || (a.text < b.text) - (a.text > b.text))
+    // Sort by decreasing matches
+    order.sort((a, b) => a.differentCount - b.differentCount || (a.text < b.text) - (a.text > b.text))
 
-    for (const { failedCount, percent, name, version } of order) {
-      if (failedCount > 0) {
+    for (const { differentCount, percent, name, version } of order) {
+      if (differentCount > 0) {
         console.log(`🚫 \x1b[31m${name} (${percent})\x1b[0m`)
-        forReadme += `* ${version}: 🚫 Incorrect (${percent})\n`
+        forReadme += `* ${version}: 🚫 Different (${percent})\n`
       } else {
         console.log(`✅ \x1b[32m${name} (${percent})\x1b[0m`)
-        forReadme += `* ${version}: ✅ Correct (${percent})\n`
+        forReadme += `* ${version}: ✅ Same (${percent})\n`
       }
     }
   }
@@ -192,9 +192,14 @@ async function main() {
   if (index !== -1) {
     readme = readme.slice(0, index)
     readme += '## Current results\n\n'
-    readme += `"Correct" here means that the bundled code behaves exactly the same as the unbundled code. `
-    readme += `"Incorrect" here means that the bundled code behaves differently (i.e. is evaluated in a different order) than unbundled code. `
-    readme += `The correct percentage means how many runs were correct out of ${totalCount} total runs.\n`
+    readme += `"Same" here means that the bundled code behaves exactly the same as the unbundled code. `
+    readme += `"Different" here means that the bundled code behaves differently (i.e. is evaluated in a different order) than unbundled code. `
+    readme += `The same percentage means how many runs were same out of ${totalCount} total runs.\n`
+    readme += `\n`
+    readme += `**Note: Both the specification and V8/node currently have subtle bugs that cause undesirable behavior.** `
+    readme += `So it's not really the case that matching V8/node 100% exactly is desirable. `
+    readme += `But it is desirable to match V8/node at least almost exactly (~99%) as the bugs are very subtle and only affect a few edge cases. `
+    readme += `Hopefully the various implementations of top-level await will converge on the same behavior in the future.\n`
     readme += forReadme
     fs.writeFileSync(path.join(__dirname, 'README.md'), readme)
   }
