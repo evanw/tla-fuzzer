@@ -9,32 +9,34 @@ This is a fuzzer to test the correctness of various [top-level await](https://gi
 
 ## Current results
 
-"Correct" here means that the bundled code behaves exactly the same as the unbundled code. "Incorrect" here means that the bundled code behaves differently (i.e. is evaluated in a different order) than unbundled code. The correct percentage means how many runs were correct out of 300 total runs.
+"Same" here means that the bundled code behaves exactly the same as the unbundled code. "Different" here means that the bundled code behaves differently (i.e. is evaluated in a different order) than unbundled code. The same percentage means how many runs were same out of 300 total runs.
+
+**Note: Both the specification and V8/node currently have subtle bugs that cause undesirable behavior.** So it's not really the case that matching V8/node 100% exactly is desirable. But it is desirable to match V8/node at least almost exactly (~99%) as the bugs are very subtle and only affect a few edge cases. Hopefully the various implementations of top-level await will converge on the same behavior in the future.
 
 Variant: simple
 
-* Custom module registry algorithm: ✅ Correct (100% correct)
-* Webpack 5.18.0: 🚫 Incorrect (92% correct)
-* Rollup 2.38.0: 🚫 Incorrect (80% correct)
-* SystemJS 6.8.3: 🚫 Incorrect (67% correct)
+* Custom module registry algorithm: ✅ Same (100% same)
+* Webpack 5.19.0: 🚫 Different (99% same)
+* Rollup 2.38.0: 🚫 Different (75% same)
+* SystemJS 6.8.3: 🚫 Different (66% same)
 
 Variant: trailing promise
 
-* Custom module registry algorithm: ✅ Correct (100% correct)
-* Webpack 5.18.0: 🚫 Incorrect (45% correct)
-* SystemJS 6.8.3: 🚫 Incorrect (38% correct)
-* Rollup 2.38.0: 🚫 Incorrect (12% correct)
+* Custom module registry algorithm: ✅ Same (100% same)
+* Webpack 5.19.0: 🚫 Different (99% same)
+* SystemJS 6.8.3: 🚫 Different (35% same)
+* Rollup 2.38.0: 🚫 Different (13% same)
 
 Variant: cyclic
 
-* Custom module registry algorithm: 🚫 Incorrect (99% correct)
-* SystemJS 6.8.3: 🚫 Incorrect (84% correct)
-* Webpack 5.18.0: 🚫 Incorrect (70% correct)
-* Rollup 2.38.0: 🚫 Incorrect (69% correct)
+* Custom module registry algorithm: 🚫 Different (99% same)
+* Webpack 5.19.0: 🚫 Different (98% same)
+* SystemJS 6.8.3: 🚫 Different (87% same)
+* Rollup 2.38.0: 🚫 Different (69% same)
 
 Variant: cyclic, trailing promise
 
-* Custom module registry algorithm: 🚫 Incorrect (99% correct)
-* SystemJS 6.8.3: 🚫 Incorrect (46% correct)
-* Webpack 5.18.0: 🚫 Incorrect (32% correct)
-* Rollup 2.38.0: 🚫 Incorrect (20% correct)
+* Custom module registry algorithm: 🚫 Different (98% same)
+* Webpack 5.19.0: 🚫 Different (98% same)
+* SystemJS 6.8.3: 🚫 Different (42% same)
+* Rollup 2.38.0: 🚫 Different (19% same)
