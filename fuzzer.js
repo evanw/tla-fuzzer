@@ -84,7 +84,7 @@ async function runStrategy(strategy, files, dir) {
 async function main() {
   const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
   const dir = path.join(__dirname, '.tests')
-  try { fs.rmdirSync(dir, { recursive: true }) } catch (e) { }
+  try { fs.rmSync(dir, { recursive: true }) } catch (e) { }
 
   const variants = []
   for (const isCyclic of [false, true]) {
@@ -134,7 +134,7 @@ async function main() {
           strategies.map((strategy, i) => decorate(strategy.name, variant.counterexamples[i]))).join('') + '  ')
 
       // Only keep this directory if it contains a counter-example
-      if (!isImportantFailure) try { fs.rmdirSync(testDir, { recursive: true }) } catch (e) { }
+      if (!isImportantFailure) try { fs.rmSync(testDir, { recursive: true }) } catch (e) { }
     }
 
     process.stdout.write('\n')

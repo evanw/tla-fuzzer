@@ -16,27 +16,27 @@ This is a fuzzer to test the correctness of various [top-level await](https://gi
 Variant: simple
 
 * Custom module registry algorithm: ✅ Same (100% same)
-* Webpack 5.19.0: 🚫 Different (99% same)
-* Rollup 2.38.0: 🚫 Different (75% same)
-* SystemJS 6.8.3: 🚫 Different (66% same)
+* Webpack 5.75.0: ✅ Same (100% same)
+* Rollup 3.7.4: 🚫 Different (81% same)
+* SystemJS 6.13.0: 🚫 Different (70% same)
 
 Variant: trailing promise
 
 * Custom module registry algorithm: ✅ Same (100% same)
-* Webpack 5.19.0: 🚫 Different (99% same)
-* SystemJS 6.8.3: 🚫 Different (35% same)
-* Rollup 2.38.0: 🚫 Different (13% same)
+* Webpack 5.75.0: ✅ Same (100% same)
+* SystemJS 6.13.0: 🚫 Different (41% same)
+* Rollup 3.7.4: 🚫 Different (15% same)
 
 Variant: cyclic
 
-* Custom module registry algorithm: 🚫 Different (99% same)
-* Webpack 5.19.0: 🚫 Different (98% same)
-* SystemJS 6.8.3: 🚫 Different (87% same)
-* Rollup 2.38.0: 🚫 Different (69% same)
+* Webpack 5.75.0: 🚫 Different (99% same)
+* Custom module registry algorithm: 🚫 Different (98% same)
+* SystemJS 6.13.0: 🚫 Different (83% same)
+* Rollup 3.7.4: 🚫 Different (68% same)
 
 Variant: cyclic, trailing promise
 
-* Custom module registry algorithm: 🚫 Different (98% same)
-* Webpack 5.19.0: 🚫 Different (98% same)
-* SystemJS 6.8.3: 🚫 Different (42% same)
-* Rollup 2.38.0: 🚫 Different (19% same)
+* Custom module registry algorithm: 🚫 Different (99% same)
+* Webpack 5.75.0: 🚫 Different (99% same)
+* SystemJS 6.13.0: 🚫 Different (44% same)
+* Rollup 3.7.4: 🚫 Different (20% same)
