@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as url from 'url'
 
 import { nativeStrategy } from './strategy.native.js'
+import { awaitStrategy } from './strategy.await.js'
 import { registryStrategy } from './strategy.registry.js'
 import { rollupStrategy } from './strategy.rollup.js'
 import { webpackStrategy } from './strategy.webpack.js'
@@ -11,6 +12,7 @@ import { systemJSStrategy } from './strategy.system.js'
 const strategyToMatch = nativeStrategy;
 
 const strategies = [
+  awaitStrategy,
   registryStrategy,
   rollupStrategy,
   webpackStrategy,

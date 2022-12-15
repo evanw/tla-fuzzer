@@ -17,26 +17,30 @@ Variant: simple
 
 * Custom module registry algorithm: ✅ Same (100% same)
 * Webpack 5.75.0: ✅ Same (100% same)
-* Rollup 3.7.4: 🚫 Different (81% same)
-* SystemJS 6.13.0: 🚫 Different (70% same)
+* Import becomes inline await: 🚫 Different (80% same)
+* Rollup 3.7.4: 🚫 Different (80% same)
+* SystemJS 6.13.0: 🚫 Different (67% same)
 
 Variant: trailing promise
 
-* Custom module registry algorithm: ✅ Same (100% same)
 * Webpack 5.75.0: ✅ Same (100% same)
-* SystemJS 6.13.0: 🚫 Different (41% same)
-* Rollup 3.7.4: 🚫 Different (15% same)
+* Custom module registry algorithm: 🚫 Different (100% same)
+* SystemJS 6.13.0: 🚫 Different (40% same)
+* Rollup 3.7.4: 🚫 Different (14% same)
+* Import becomes inline await: 🚫 Different (11% same)
 
 Variant: cyclic
 
+* Custom module registry algorithm: 🚫 Different (99% same)
 * Webpack 5.75.0: 🚫 Different (99% same)
-* Custom module registry algorithm: 🚫 Different (98% same)
-* SystemJS 6.13.0: 🚫 Different (83% same)
-* Rollup 3.7.4: 🚫 Different (68% same)
+* SystemJS 6.13.0: 🚫 Different (85% same)
+* Import becomes inline await: 🚫 Different (67% same)
+* Rollup 3.7.4: 🚫 Different (67% same)
 
 Variant: cyclic, trailing promise
 
 * Custom module registry algorithm: 🚫 Different (99% same)
 * Webpack 5.75.0: 🚫 Different (99% same)
-* SystemJS 6.13.0: 🚫 Different (44% same)
-* Rollup 3.7.4: 🚫 Different (20% same)
+* SystemJS 6.13.0: 🚫 Different (46% same)
+* Rollup 3.7.4: 🚫 Different (22% same)
+* Import becomes inline await: 🚫 Different (20% same)
