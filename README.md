@@ -15,8 +15,9 @@ This is a fuzzer to test the correctness of various [top-level await](https://gi
 
 Variant: simple
 
-* Custom module registry algorithm: ✅ Same (100% same)
 * Webpack 5.75.0: ✅ Same (100% same)
+* Rspack 0.3.8: ✅ Same (100% same)
+* Custom module registry algorithm: 🚫 Different (100% same)
 * Import becomes inline await: 🚫 Different (80% same)
 * Rollup 3.7.4: 🚫 Different (80% same)
 * SystemJS 6.13.0: 🚫 Different (67% same)
@@ -24,23 +25,26 @@ Variant: simple
 Variant: trailing promise
 
 * Webpack 5.75.0: ✅ Same (100% same)
-* Custom module registry algorithm: 🚫 Different (100% same)
-* SystemJS 6.13.0: 🚫 Different (40% same)
-* Rollup 3.7.4: 🚫 Different (14% same)
-* Import becomes inline await: 🚫 Different (11% same)
+* Rspack 0.3.8: ✅ Same (100% same)
+* Custom module registry algorithm: 🚫 Different (99% same)
+* SystemJS 6.13.0: 🚫 Different (38% same)
+* Rollup 3.7.4: 🚫 Different (13% same)
+* Import becomes inline await: 🚫 Different (12% same)
 
 Variant: cyclic
 
-* Custom module registry algorithm: 🚫 Different (99% same)
-* Webpack 5.75.0: 🚫 Different (99% same)
-* SystemJS 6.13.0: 🚫 Different (85% same)
-* Import becomes inline await: 🚫 Different (67% same)
-* Rollup 3.7.4: 🚫 Different (67% same)
+* Webpack 5.75.0: 🚫 Different (100% same)
+* Rspack 0.3.8: 🚫 Different (100% same)
+* Custom module registry algorithm: 🚫 Different (98% same)
+* SystemJS 6.13.0: 🚫 Different (80% same)
+* Import becomes inline await: 🚫 Different (66% same)
+* Rollup 3.7.4: 🚫 Different (66% same)
 
 Variant: cyclic, trailing promise
 
-* Custom module registry algorithm: 🚫 Different (99% same)
 * Webpack 5.75.0: 🚫 Different (99% same)
-* SystemJS 6.13.0: 🚫 Different (46% same)
-* Rollup 3.7.4: 🚫 Different (22% same)
-* Import becomes inline await: 🚫 Different (20% same)
+* Rspack 0.3.8: 🚫 Different (99% same)
+* Custom module registry algorithm: 🚫 Different (98% same)
+* SystemJS 6.13.0: 🚫 Different (44% same)
+* Rollup 3.7.4: 🚫 Different (21% same)
+* Import becomes inline await: 🚫 Different (19% same)
