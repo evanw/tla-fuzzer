@@ -8,6 +8,7 @@ import { registryStrategy } from './strategy.registry.js'
 import { rollupStrategy } from './strategy.rollup.js'
 import { webpackStrategy } from './strategy.webpack.js'
 import { systemJSStrategy } from './strategy.system.js'
+import { rspackStrategy } from './strategy.rspack.js'
 
 const strategyToMatch = nativeStrategy;
 
@@ -17,6 +18,7 @@ const strategies = [
   rollupStrategy,
   webpackStrategy,
   systemJSStrategy,
+  rspackStrategy,
 ]
 
 function generateTestCase({ isCyclic, useTrailingPromise }) {
